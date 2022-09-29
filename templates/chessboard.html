@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <style>
+            .chess-board { border-spacing: 0; border-collapse: collapse; }
+            .chess-board th { padding: .5em; }
+            .chess-board td { text-align: center; border: 1px solid; width: 4em; height: 4em; }
+            .chess-board .light { background: #eee; }
+            .chess-board .dark { background: #666666; }
+			.select { border: 5px solid #ccccff; }
+			.row { text-align: center; }
+			.button {
+			  width: 40px;
+			  height: 30px;
+			}
+
+			.button1 {
+			  background-color: white;
+			  color: black;
+			  border: 2px solid #4CAF50;
+			}
+
+			.button1:hover {
+			  background-color: #4CAF50;
+			  color: white;
+			}
+			
+			.split {
+			  height: 100%;
+			  position: fixed;
+			  z-index: 1;
+			  top: 0;
+			  overflow-x: hidden;
+			  padding-top: 20px;
+			}
+
+			/* Control the left side */
+			.left {
+			  width: 70%;
+			  left: 0;
+			  background-color: #111;
+			}
+
+			/* Control the right side */
+			.right {
+			  width: 30%;
+			  right: 0;
+			  background-color: grey;
+			  padding-left:10px;
+			}
+
+			/* If you want the content centered horizontally and vertically */
+			.centered {
+			  position: absolute;
+			  top: 50%;
+			  left: 50%;
+			  transform: translate(-50%, -50%);
+			  text-align: center;
+			}
+        </style>
+    </head>
+    <body onload = "generateBoard()">
+		<div class="split left">
+		  <div class="centered">
+			<table class="chess-board">
+				<tbody id = "tbody">
+				</tbody>
+			</table>
+			<button class="button button1" onclick="undo()"><img style="width:20px; height:20px;" src="{% static '/images/undo.png' %}"/></button>
+		  </div>
+		</div>
+
+		<div class="split right">
+			<h2>Moves</h2>
+			<p id = "moves-hist"></p>
+		</div>
+
+        
+		
+		<store style="visibility:'hidden';">
+			<first></first>
+			<counter></counter>
+		</store>
+		<script>
+			function undo(){
+				var hist = document.getElementById("moves-hist").innerHTML;
+				hist = hist.split(";");
+				document.getElementById("moves-hist").innerHTML = hist.slice(0,hist.length-2).join(";")+";";
+				hist = hist[hist.length-2].replace(";","");
+				console.log("hist:"+hist);
+				var element2 = document.getElementById(hist.split("\t")[1].split(":")[0]);
+				var element1 = document.getElementById(hist.split("\t")[0].split(":")[0]);
+				var src2 = hist.split("\t")[1].split(":")[1];
+				var src1 = hist.split("\t")[0].split(":")[1];
+				console.log("src2:"+src2);
+				console.log("src1:"+src1);
+				element2.setAttribute("src", src2);
+				element1.setAttribute("src", src1);
+			}
+			function setPieces(){
+				const bPeices = ["BR.png","BN.png","BB.png","BQ.png","BK.png","BB.png","BN.png","BR.png"];
+				const wPeices = ["WR.png","WN.png","WB.png","WQ.png","WK.png","WB.png","WN.png","WR.png"];
+				var element = document.getElementById("img0").getAttribute("data-original");
+				for(var j = 0; j < 8; j++){
+					document.getElementById("img"+j).setAttribute("src", element+bPeices[j]);
+					document.getElementById("img"+(8+j)).setAttribute("src", element+"BP.png");
+					document.getElementById("img"+(48+j)).setAttribute("src", element+"WP.png");
+					document.getElementById("img"+(56+j)).setAttribute("src", element+wPeices[j]);
+				}
+				
+			}
+			function generateBoard(){
+				for(var j = 0; j < 8; j=j+2){
+					var idx = 8*j;
+					var tr = "<tr id='trow"+j+"'></tr>";
+					document.getElementById("tbody").innerHTML += tr;
+					for(var i = idx; i < idx+8; i=i+2){
+						var td = "<td class='light' onclick=\"swap('img"+i+"')\"><img id='img"+i+"' src='' data-original='{% static '/images/' %}'/></td>"+
+								"<td class='dark' onclick=\"swap('img"+(i+1)+"')\"><img id='img"+(i+1)+"' src='' data-original='{% static '/images/' %}'/></td>";
+						document.getElementById("trow"+j).innerHTML += td;
+						console.log(document.getElementById("tbody").innerHTML);
+					}
+					
+					idx = 8*(j+1);
+					tr = "<tr id='trow"+(j+1)+"'></tr>";
+					document.getElementById("tbody").innerHTML += tr;
+					for(var i = idx; i < idx+8; i=i+2){
+						var td = "<td class='dark' onclick=\"swap('img"+i+"')\"><img id='img"+i+"' src='' data-original='{% static '/images/' %}'/></td>"+
+								"<td class='light' onclick=\"swap('img"+(i+1)+"')\"><img id='img"+(i+1)+"' src='' data-original='{% static '/images/' %}'/></td>";
+						document.getElementById("trow"+(j+1)).innerHTML += td;
+						console.log(document.getElementById("tbody").innerHTML);
+					}
+				}
+				setPieces();
+				setTag('counter','false');
+			}
+			function swap(ini){
+				var counter = document.getElementsByName("counter").innerHTML;
+				var id = document.getElementsByName("first").innerHTML;
+				console.log("id:"+id);
+				console.log(ini);
+				console.log(counter);
+				var element2 = document.getElementById(ini);
+				if (counter == "false"){
+					console.log(" counter false");
+					if(element2.getAttribute("src") != ""){
+						id = ini;
+						setTag("first", ini);
+						setTag("counter", "true");
+						element2.classList.add("select");
+					}
+					return 0;
+				}
+				
+				console.log("didnt return");
+				var element1 = document.getElementById(id);
+				
+				var src1 = element1.getAttribute("src").split('/').pop();
+				var src2 = element2.getAttribute("src").split('/').pop();
+				setTag("counter","false");
+				element1.classList.remove('select');
+				if(src1.split('')[0] == src2.split('')[0]){
+					return 0;
+				}
+				if(!isValidMove(src1, id, ini)){
+					return 0;
+				}
+				var hist = id+":"+element1.getAttribute("src")+"\t"+ini+":"+element2.getAttribute("src")+";";
+				document.getElementById("moves-hist").innerHTML += hist;
+				element2.setAttribute("src", element1.getAttribute("src"));
+				element1.setAttribute("src", "");
+			}
+			function isValidMove(src1, id, ini){
+				imgdata = src1.split("");
+				console.log("src0:"+src1[0]);
+				console.log("src1:"+src1[1]);
+				console.log("id:"+id);
+				console.log("ini:"+ini);
+				var diff = (id.replace(/[^\d.-]/g, '')-ini.replace(/[^\d.-]/g, ''));
+				if(src1[1] == "P"){
+					var pawnStart = Math.trunc(id.replace(/[^\d.-]/g, '')/8);
+					console.log(src1[0]+":"+diff);
+					console.log("pawnstart:"+pawnStart);
+						
+					if(src1[0] == "W"){						
+						if((diff < 10 && diff > 6) || (diff == 16 && pawnStart == 6))
+							return true;
+						else
+							return false;
+					}
+					else{
+						if((diff > -10 && diff < -6) || (diff == -16 && pawnStart == 1	))
+							return true;
+						else
+							return false;
+					}
+				}
+				return true;
+			}
+			function setTag(tag, val){
+				console.log(tag+":loading:"+val);
+				document.getElementsByName(tag).innerHTML = val;
+			}
+		</script>
+    </body>
+</html>
