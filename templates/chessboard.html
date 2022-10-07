@@ -44,7 +44,6 @@
       			.right {
       			  width: 30%;
       			  right: 0;
-      			  background-color: grey;
       			  padding-left:10px;
       			}
       
@@ -71,9 +70,9 @@
 		    </div>
 		</div>
 
-		<div class="split right">
-  			<h2>Moves</h2>
-  			<p id = "moves-hist"></p>
+		<div class="split right" style="background-color:{{ color }};">
+  			<a id="change" href="{% url 'changeMoves' %}" onclick = "addInnerHtmlhref('change', 'tbody')"><h2>Moves</h2></a>
+  			<a id="update" href="{% url 'updateMoves' %}"><p id = "moves-hist">empty</p>
 		</div>
 
 		<store style="visibility:'hidden';">
@@ -82,6 +81,13 @@
 		</store>
       
 		<script>
+      function addInnerHtmlhref(id1, id2){
+        var href = document.getElementById(id1).getAttribute("href");
+        var attr = document.getElementById(id2).innerHTML;
+        console.log("href:"+href);
+        console.log("attr:"+attr);
+        document.getElementById(id1).setAttribute("href",href+"/"+attr);
+      }
 			function undo(){
 				var hist = document.getElementById("moves-hist").innerHTML;
 				hist = hist.split(";");
@@ -110,6 +116,12 @@
 				
 			}
 			function generateBoard(){
+        var body = {{body}};
+        console.log("body:"+body);
+        if(body != null){
+          document.getElementById("tbody").innerHTML = body;
+          return 0;
+        }
 				for(var j = 0; j < 8; j=j+2){
 					var idx = 8*j;
 					var tr = "<tr id='trow"+j+"'></tr>";

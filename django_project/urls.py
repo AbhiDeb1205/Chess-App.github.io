@@ -20,4 +20,6 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
+    # path('changeMoves/<table>', views.changeMoves, name='changeMoves'),
+    path('updateMoves/', views.updateMoves, name='updateMoves'),
 ]
